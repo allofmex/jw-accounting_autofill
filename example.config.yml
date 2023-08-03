@@ -1,0 +1,17 @@
+## Please update following values according to your needs
+
+## You may disable the username line if you prefer to enter your credentials manually during tool run
+websiteUserName: "me@jwpub.org"
+
+## The following are file names for result files
+##    (will be relativ path with filePathResultsBase as base path)
+filePathResultsBase: /media/NAS/S-Main/Daten/Desk_Workspace/Eclipse/jw_accounting_autofill
+## You can use (date) placeholder here
+## Example:
+##    Report_%%MONTH_STR%%#%%YEAR%%.pdf will create file like Report_May#2023.pdf
+##      %%MONTH%% -> 08
+##      %%MONTH_STR%% -> August
+##      %%YEAR%% -> 2023
+filePathS26: out/Kontenblatt %%MONTH%%#%%YEAR%%.pdf
+filePathS30: out/Rechnungsbericht %%MONTH%%#%%YEAR%%.pdf
+filePathTO62: out/TO-62_X # Übertrag WTG # %%MONTH_STR%% %%YEAR%%.pdf

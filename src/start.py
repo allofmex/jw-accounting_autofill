@@ -13,6 +13,7 @@ from Config import Config
 SCRIPT_PATH = os.path.dirname(__file__)
 BASE_PATH = os.path.dirname(SCRIPT_PATH)
 config = month = accountName = sourceFile = None
+simulationOnly = False;
 
 def helpMsg():
     print("Accounting helper tool")
@@ -61,7 +62,8 @@ async def _runTransactionUpload():
     # datetime.date(2023, 6, 1)
     task = TransactionTaskInfo(accountName, month, sourceFile)
     tool = AccountingTool(config)
-    tool.setSimulation()
+    if simulationOnly is True:
+        tool.setSimulation()
     await tool.run(task)
 
 async def _runFinalizingOfMonth():
@@ -75,7 +77,7 @@ async def _runFinalizingOfMonth():
 
 try:
     argumentList = sys.argv[1:]
-    options, remainder = getopt.getopt(argumentList, "ams:h", ["account=", "month=", "source=", "help"])
+    options, remainder = getopt.getopt(argumentList, "ams:h", ["account=", "month=", "source=", "simulate", "help"])
     for opt, arg in options:
         if opt in ('-m', '--month'):
             try:
@@ -87,6 +89,9 @@ try:
             accountName = arg
         if opt in ('s', '--source'):
             sourceFile = arg
+        if opt in ('--simulate'):
+            print("Simulated run only!")
+            simulationOnly = True
         if opt in ('-h', '--help'):
             helpMsg()
             sys.exit()

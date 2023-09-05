@@ -1,0 +1,14 @@
+[project]
+name = "jw_accounting_autofill"
+description = "Jw Web Accounting Helper package"
+version = "0.1.0"
+authors = [
+    { name = "Allofmex", email = "allofmex@web.de" }
+]
+dependencies = [
+    "selenium",
+    "readchar",
+    "pyyaml",
+    "markdown",
+    "jw_page_navigation @ git+https://code.all-of-mex.de/jw/jw_page_navigation@v0.1.1",
+]

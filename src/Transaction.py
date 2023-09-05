@@ -20,7 +20,10 @@ class Transaction:
         self._purpose = txt
         
     def isDonation(self):
-        return self._action == "GUTSCHR. UEBERW. DAUERAUFTR" or self._action == "GUTSCHR. UEBERWEISUNG"
+        return 'txt' in self._purpose and (self._action == "GUTSCHR. UEBERW. DAUERAUFTR" or self._action == "GUTSCHR. UEBERWEISUNG")
+        
+    def isJwDonation(self):
+        return 'Jehovas Zeugen In Deutschland, K. D. O. R.' in self._name
     
     def isCashDeposit(self):
         return self._action.startswith("BARGELDEINZAHLUNG")
@@ -45,9 +48,27 @@ class Transaction:
     
     def getSubject(self):
         return self._purpose['txt'] if 'txt' in self._purpose else ""
+        
+    def _getTypePrint(self):
+        if self.isDonation():
+            return "Donation"
+        elif self.isJwDonation():
+            return "JWORG Donation"
+        elif self.isFundsTransfer():
+            return "FundTransfer"
+        elif self.isBankingCosts():
+            return "BankingCosts"
+        elif self.isCashDeposit():
+            return "CashDeposit"
+        elif self.isPayment():
+            return "Payment"
+        return "UNKNOWN!";
     
     def __repr__(self):
         purpose = self._purpose['txt'] if 'txt' in self._purpose else ""
+
+            
         if len(purpose) > 30:
             purpose = purpose[:30]+".."
-        return "<Transaction "+self._date.strftime("%d.%m.%y") +f"  {self._name:50s} {self._amount:10.2f}  {purpose}>"
+        return "<Transaction "+self._date.strftime("%d.%m.%y") +f"  {self._name:50s} {self._amount:10.2f}  {purpose:35s} {self._getTypePrint():10s}>"
+        

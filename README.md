@@ -13,16 +13,16 @@ Create virtual environment
 
 ```
 apt install python3.11-venv
-python3 -m venv jw_autofill_venv
+python3 -m venv ~/jw_autofill_venv
 ```
 
 Activate virtual environment
 
 ```
-source jw_autofill_venv/bin/activate
-pip3 install selenium
-pip3 install webdriver-manager
-pip3 install readchar pyyaml
+source ~/jw_autofill_venv/bin/activate
+
+pip3 install .
+# pip3 install --editable .
 ```
 
 Copy example.config.yml to config.yml and edit values according to your needs
@@ -31,8 +31,8 @@ Copy example.config.yml to config.yml and edit values according to your needs
 ## Usage
 
 ```
-source jw_autofill_venv/bin/activate
-run.sh --month=2023-06 --source=mt940.csv --account="JW org account name"
+source ~/jw_autofill_venv/bin/activate
+./run.sh --month=2023-06 --source=mt940.csv --account="Accounting sub-account name on jw org"
 ```
 
 Follow the menu.

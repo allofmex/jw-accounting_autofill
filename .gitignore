@@ -3,11 +3,13 @@ __pycache__/
 *.py[cod]
 *$py.class
 *.log
+*.egg-info
 
 /.project
 /.pydevproject
 /.settings/
-/tmp
+tmp/
+templates/
 
 *.yml
 !/example.config.yml

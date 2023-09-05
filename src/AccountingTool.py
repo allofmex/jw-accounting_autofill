@@ -31,6 +31,8 @@ class AccountingTool:
         
         print("Navigating to website")
         targetNav = AccountsPageNavigatior(self.config.get(Config.BROWSER_PROFILE_DIR))
+        if (self._isSimulation):
+            targetNav.setSimulation()
 
         userName = self.config.get(Config.WEBSITE_USERNAME, False)
         if userName is not None:
@@ -44,25 +46,31 @@ class AccountingTool:
         
         for transaction in transactions:
             if transaction.isDonation():
-                if not self._isSimulation:
-                    await targetNav.addElectronicContrib(transaction.getDate(), transaction.getAmount())
+                # if not self._isSimulation:
+                await targetNav.addElectronicContrib(transaction.getDate(), transaction.getAmount())
                 self._logTransaction("Donation", transaction)
+            elif transaction.isJwDonation():
+                # if not self._isSimulation:
+                label = self.config.get(Config.DESC_JW_ORG_DONATIONS)
+                await targetNav.addElectronicContrib(transaction.getDate(), transaction.getAmount(), label)
+                self._logTransaction("Jw.org Donation", transaction)
             elif transaction.isCashDeposit():
-                if not self._isSimulation:
-                    await targetNav.addCashDeposit(transaction.getDate(), transaction.getAmount())
+                # if not self._isSimulation:
+                await targetNav.addCashDeposit(transaction.getDate(), transaction.getAmount())
                 self._logTransaction("Cash deposit", transaction)
             elif transaction.isPayment():
                 category = self.CAT_HALL # ToDo
-                if not self._isSimulation:
-                    await targetNav.addPayment(transaction.getDate(), transaction.getAmount(), transaction.getSubject(), category)
+                # if not self._isSimulation:
+                
+                await targetNav.addPayment(transaction.getDate(), transaction.getAmount(), transaction.getSubject(), category)
                 print("Please update type of payment manually afterwards for "+transaction.getSubject())
                 self._logTransaction("Payment", transaction)
             elif transaction.isBankingCosts():
-                if not self._isSimulation:
-                    await targetNav.addPayment(transaction.getDate(), transaction.getAmount(), "Bankgebühren", self.CAT_OTHER)
+                # if not self._isSimulation:
+                await targetNav.addPayment(transaction.getDate(), transaction.getAmount(), "Bankgebühren", self.CAT_OTHER)
                 self._logTransaction("Banking costs", transaction)
             elif transaction.isFundsTransfer():
-                print("Fund transfer found {transaction.getAmount()}. Skipping because it does not need to handled.")
+                print(f"Fund transfer found {transaction.getAmount()}. Skipping because it does not need to handled.")
             else:
                 print("Unhandled transaction!"+str(transaction))
 

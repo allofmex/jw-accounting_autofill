@@ -1,10 +1,11 @@
 #!/usr/bin/python3
+import os, shutil
+import asyncio
+
 from AccountTask import AccountTask
 from Config import Config
 from AccountsPageNavigatior import AccountsPageNavigatior
-import os
-import asyncio
-import locale
+from Template import substitude
 
 class MonthCloser:
 
@@ -14,20 +15,30 @@ class MonthCloser:
         self.config = config
         self.downloadDir = config.get(Config.WORK_DIR) + '/dwnl-tmp'
         os.makedirs(self.downloadDir, exist_ok=True, mode=700)
+        
+    async def prepareTransferReport(self, taskInfo : AccountTask):
+        while True:
+            resolutionValueStr = input("Enter amount to transfer (by resolution): ")
+            if resolutionValueStr.isnumeric():
+                resolutionValue = int(resolutionValueStr)
+                break
+            else:
+                print("Invalid input")
+        targetNav = AccountsPageNavigatior(self.config.get(Config.BROWSER_PROFILE_DIR),
+                                   self.downloadDir)
+        await self._loginAndNavMonth(taskInfo, targetNav);
+        await targetNav.navCloseMonthStart()
+        await targetNav.setResultionInput(resolutionValue)
+        print("Creating TO-62 form")
+        await targetNav.downloadReportTO62()
+        to62targetFile = await self._savePrintResult(self.config.get(Config.FILEPATH_TO62), taskInfo)
+        print(f"TO-62 saved to {to62targetFile}")
 
     async def run(self, taskInfo : AccountTask):
         print("Finishing monthly report for account "+taskInfo.getAccountName())
         targetNav = AccountsPageNavigatior(self.config.get(Config.BROWSER_PROFILE_DIR),
-                                           self.downloadDir)
-        userName = self.config.get(Config.WEBSITE_USERNAME, False)
-        if userName is not None:
-            targetNav.setCredentials(userName, None)
-
-        await targetNav.navigateToHub()
-        await targetNav.navAccounting()
-        await targetNav.navAccount(taskInfo.getAccountName())
-
-        await targetNav.navMonth(taskInfo.getMonth())
+                           self.downloadDir)
+        await self._loginAndNavMonth(taskInfo, targetNav)
         await targetNav.downloadReportS30()
         s30targetFile = await self._savePrintResult(self.config.get(Config.FILEPATH_S30), taskInfo)
         print(f"S-30 saved to {s30targetFile}")
@@ -37,6 +48,15 @@ class MonthCloser:
         s26targetFile = await self._savePrintResult(self.config.get(Config.FILEPATH_S26), taskInfo)
         print(f"S-26 saved to {s26targetFile}")
         print("Monthly reports downloaded. Please handle remaining tasks manually")
+
+    async def _loginAndNavMonth(self, taskInfo: AccountTask, targetNav: AccountsPageNavigatior):
+        userName = self.config.get(Config.WEBSITE_USERNAME, False)
+        if userName is not None:
+            targetNav.setCredentials(userName, None)
+        await targetNav.navigateToHub()
+        await targetNav.navAccounting()
+        await targetNav.navAccount(taskInfo.getAccountName())
+        await targetNav.navMonth(taskInfo.getMonth())
 
     async def _savePrintResult(self, targetFilePath: str, taskInfo : AccountTask) -> str:
         printedFile = f'{self.downloadDir}/printed.pdf'
@@ -50,22 +70,15 @@ class MonthCloser:
             print(f'File not found! ({printedFile})')
             return None
 
-        
         targetDir = os.path.dirname(targetFilePath)
         fileName = os.path.basename(targetFilePath)
-        os.makedirs(targetDir, exist_ok=True, mode=700)
+        os.makedirs(targetDir, exist_ok=True, mode=0o700)
 
-        locale.setlocale(locale.LC_TIME,'de_DE.UTF-8')
-        if "%%MONTH%%" in fileName:
-            fileName = fileName.replace("%%MONTH%%", taskInfo.getMonth().strftime("%m"))
-        if "%%MONTH_STR%%" in fileName:
-            fileName = fileName.replace("%%MONTH_STR%%", taskInfo.getMonth().strftime("%B"))
-        if "%%YEAR%%" in fileName:
-            fileName = fileName.replace("%%YEAR%%", taskInfo.getMonth().strftime("%Y"))
+        fileName = substitude(fileName, taskInfo)
         targetFilePath = f'{targetDir}/{fileName}'
         targetFilePath = self._prepareFilename(targetFilePath)
 
-        os.rename(printedFile, targetFilePath)
+        shutil.move(printedFile, targetFilePath)
         if os.path.isfile(printedFile):
             raise Exception("File rename did not worked out "+printedFile)
         return targetFilePath

@@ -9,6 +9,7 @@ from MonthCloser import MonthCloser
 from TransactionTaskInfo import TransactionTaskInfo
 from AccountTask import AccountTask
 from Config import Config
+from ReportMailer import ReportMailer
 
 SCRIPT_PATH = os.path.dirname(__file__)
 BASE_PATH = os.path.dirname(SCRIPT_PATH)
@@ -20,12 +21,9 @@ def helpMsg():
     print()
     print("Usage:")
     print("<run.sh> [--source=mt940.csv | --month=2023-05 | --help]")
-    print("m|month         Date string YYYY.MM")
+    print("m|month         Date string YYYY-MM")
     print("a|account       Bank account name as used on jw org")
     print("s|source        Source file to import (e.g. mt940.csv)")
-    # print("y|yes          Unattended mode, confirm most questions with yes. Useful for testing, Do not use for final run!")
-    # print("v|verbose      Print additional data like found form field names in input file")
-    # print("t|test         Stop after first report. May be used for initial setup/result test")
     print()
     print("Use MT940 csv format for bank account export")
     print()
@@ -33,17 +31,34 @@ def helpMsg():
 
 async def printMainMenu():
     print("1: Upload transactions")
+    print("3: Prepare fund transfer form")
+    print("4: Prepare fund transfer approval mail")
     print("5: Finalize month and download reports")
     print("9: Exit")
-    selected = _requestUserSelection("Please select number", [1,5,9], int.__class__)
+    selected = _requestUserSelection("Please select number", [1,3,4,5,9], int.__class__)
     if selected == 1:
         print("Starting upload")
         await _runTransactionUpload()
+    elif selected == 3:
+        print("Starting funds transfer dialog")
+        await _runFundTransferPreparation()
+    elif selected == 4:
+        print("Preparing mail")
+        await _runFundTransferApprovalMail()
     elif selected == 5:
         print("Starting finalizing")
         await _runFinalizingOfMonth()
     elif selected == 9:
         sys.exit()
+
+def _assertMonth():
+    if month is None:
+        raise Exception("You must provide --month option")
+
+def _assertMonthAndAccountName():
+    _assertMonth()
+    if month is None or accountName is None:
+        raise Exception("You must provide --account option")
 
 def _requestUserSelection(msg, allowedKeys: List, typeClass):
     print(msg)
@@ -57,18 +72,29 @@ def _requestUserSelection(msg, allowedKeys: List, typeClass):
             print("Invalid key")
 
 async def _runTransactionUpload():
-    if month is None or accountName is None or sourceFile is None:
-        raise Exception("You must provide --month, --account and --source option")
-    # datetime.date(2023, 6, 1)
+    _assertMonthAndAccountName()
+    if sourceFile is None:
+        raise Exception("You must provide --source option")
     task = TransactionTaskInfo(accountName, month, sourceFile)
     tool = AccountingTool(config)
     if simulationOnly is True:
         tool.setSimulation()
     await tool.run(task)
 
+async def _runFundTransferPreparation():
+    _assertMonthAndAccountName()
+    task = AccountTask(accountName, month)
+    tool = MonthCloser(config)
+    await tool.prepareTransferReport(task)
+    
+async def _runFundTransferApprovalMail():
+    _assertMonth()
+    task = AccountTask(None, month)
+    mailer = ReportMailer(config)
+    await mailer.prepareTransferApprovalMail(task)
+    
 async def _runFinalizingOfMonth():
-    if month is None or accountName is None:
-        raise Exception("You must provide --month and --account option")
+    _assertMonthAndAccountName()
     task = AccountTask(accountName, month)
     tool = MonthCloser(config)
     await tool.run(task)

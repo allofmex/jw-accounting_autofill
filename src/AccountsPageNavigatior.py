@@ -7,9 +7,11 @@ from selenium.webdriver.support.select import Select
 import locale
 from _datetime import date
 
-from PageNavigator import PageNavigator
+from jw_page_navigation.PageNavigator import PageNavigator
 
 class AccountsPageNavigatior(PageNavigator):
+
+    _isSimulation = False
 
     async def navAccounting(self):
         await self._navWithBtnForUrl("app/field-accounting")
@@ -34,17 +36,34 @@ class AccountsPageNavigatior(PageNavigator):
         locale.setlocale(locale.LC_TIME,'de_DE.UTF-8')
         searchedMonthstr = month.strftime("%B %Y") # like "May 2023"
         for btn in monthBtn:
-            #print(btn.text)
             if btn.text == searchedMonthstr:
-                # print(f'{searchedMonthstr} found')
                 btn.click()
                 return
         raise Exception(f'{searchedMonthstr} not found!')
+    
+    async def navCloseMonthStart(self):
+        closeMonthStartBtn = self.navWait.until(ExpCond.presence_of_element_located((By.XPATH, '//ptrn-icon[contains(@icon, "calendar-checkmark")]')))
+        # closeMonthStartBtn = self.driver.find_elements(By.XPATH, '//ptrn-icon[contains(icon, "calendar-checkmark")]')
+        closeMonthStartBtn.click()
+        
+    async def setResultionInput(self, amount: int):
+        self.navWait.until(ExpCond.presence_of_element_located((By.TAG_NAME, 'app-total-amount')))
+        ## no unique identifier available für input fields
+        inputs = self.driver.find_elements(By.XPATH, '//input[contains(@id, "form.unknown")]')
+        resolutionInput = inputs[0]
+        resolutionInput.clear()
+        resolutionInput.send_keys(f"{amount:.2f}".replace('.' , ','))
 
-    async def addElectronicContrib(self, date: date, amount: float):
+    async def addElectronicContrib(self, date: date, amount: float, label: str = None):
         await self._navTransaction("electronic-contribution/add")
         self._fillDateInput(date)
         self._fillAmountInput(amount)
+        if label is not None:
+            self._fillDescInput(label)
+        if self._isSimulation:
+            self._clickCancelBtn()
+            await self._navWithBtnForUrl("/congregation/sheets/", "breadcrumb__breadcrumb-link")
+            return
         self._clickSubmitBtn()
 
     async def addCashDeposit(self, date: date, amount: float):
@@ -52,6 +71,11 @@ class AccountsPageNavigatior(PageNavigator):
         self._fillDateInput(date)
         self._fillAmountInput(amount)
         self._clickSubmitBtn()
+        if self._isSimulation:
+            self._clickPreviousBtn()
+            await self._navWithBtnForUrl("/congregation/sheets/", "breadcrumb__breadcrumb-link")
+            # await self.navAccounting()
+            return
         self._completeUpload()
         
     async def addPayment(self, date: date, amount: float, text: str, categoryValue: str):
@@ -70,6 +94,11 @@ class AccountsPageNavigatior(PageNavigator):
         select.select_by_value(categoryValue)
         # select.select_by_index(3)
         self._clickSubmitBtn()
+        if self._isSimulation:
+            self._clickPreviousBtn()
+            self._clickPreviousBtn()
+            await self._navWithBtnForUrl("/congregation/sheets/", "breadcrumb__breadcrumb-link")
+            return
         self._completeUpload()
 
     async def downloadReportS26(self):
@@ -83,6 +112,17 @@ class AccountsPageNavigatior(PageNavigator):
         btn = self.navWait.until(ExpCond.presence_of_element_located((By.XPATH, '//button[contains(.,"S‑30") or contains(.,"S-30")]')))
         btn.click()
         self._waitPrintReportReady()
+        
+    async def downloadReportTO62(self):
+        ## be aware of different dash character for de and en locale!
+        btn = self.navWait.until(ExpCond.presence_of_element_located((By.XPATH, '//a[contains(.,"TO‑62") or contains(.,"TO-62")]')))
+        btn.click()
+        self.driver.switch_to.window(self.driver.window_handles[2])
+        self._waitPrintReportReady()
+        self._clickPrintBtn()
+
+    def setSimulation(self):
+        self._isSimulation = True
 
     def _fillDateInput(self, date: date):
         dateInput = self.navWait.until(ExpCond.presence_of_element_located((By.XPATH, '//input[contains(@id, ".date") or contains(@id, ".transactionDate")]')))
@@ -92,6 +132,11 @@ class AccountsPageNavigatior(PageNavigator):
         amountInput = self.navWait.until(ExpCond.presence_of_element_located((By.XPATH, '//input[contains(@id, "form.amount")]')))
         amountInput.send_keys(f"{amount:.2f}".replace('.' , ','))
 
+    def _fillDescInput(self, text: str):
+        descInput = self.navWait.until(ExpCond.presence_of_element_located((By.XPATH, '//input[contains(@id, "form.description")]')))
+        descInput.clear()
+        descInput.send_keys(text)
+
     def _completeUpload(self):
         self.navWait.until(ExpCond.presence_of_element_located((By.XPATH, '//section[contains(@class, "file-upload-select")]')))
         self._clickSubmitBtn()
@@ -99,6 +144,18 @@ class AccountsPageNavigatior(PageNavigator):
     def _clickSubmitBtn(self):
         submitBtn = self.navWait.until(ExpCond.presence_of_element_located((By.XPATH, '//button[contains(@type, "submit") and contains(@class, "button--primary")]')))
         submitBtn.click()
+        
+    def _clickCancelBtn(self):
+        submitBtn = self.navWait.until(ExpCond.presence_of_element_located((By.XPATH, '//ptrn-button[contains(@id, "cancelButton")]')))
+        submitBtn.click()
+        
+    def _clickPreviousBtn(self):
+        prevBtn = self.navWait.until(ExpCond.presence_of_element_located((By.XPATH, '//ptrn-button[@ptrnstepperprevious]')))
+        prevBtn.click()
+        
+    def _clickPrintBtn(self):
+        printBtn = self.navWait.until(ExpCond.presence_of_element_located((By.XPATH, '//ptrn-button[contains(@icon, "printer")]')))
+        printBtn.click()
 
     async def _navTransactions(self):
         addBtn = self.navWait.until(ExpCond.presence_of_element_located((By.XPATH, '//a[contains(@href, "/transactions") and contains(@class, "button--action")]')))
@@ -109,24 +166,6 @@ class AccountsPageNavigatior(PageNavigator):
         addBtn = self.navWait.until(ExpCond.presence_of_element_located((By.XPATH, '//a[contains(@href, "'+urlPathSegment+'") and contains(@class, "list__action")]')))
         addBtn.click()
         self.navWait.until(ExpCond.presence_of_element_located((By.TAG_NAME, 'app-add-edit-transaction-container')))
-        
-    async def _waitForUserLoggedIn(self):
-        loginWait = WebDriverWait(self.driver, 120);
-        hubStartPageCond = ExpCond.presence_of_element_located((By.XPATH, '//h1[contains(@class,"top-nav__title")]'))
-        inputOrTitle = loginWait.until(ExpCond.any_of(
-            ExpCond.element_to_be_clickable((By.XPATH, '//input[@autocomplete="username"]')),
-            hubStartPageCond));
-    
-        if inputOrTitle.tag_name == "input":
-            if self.userName is not None:
-                usernameInput = self.driver.find_element(By.ID, "username")
-                usernameInput.send_keys(self.userName)
-                self.driver.find_element(By.ID, "submit-button").click()
-            print("##### Please login now! #####")
-            loginWait.until(hubStartPageCond)
-            print("Login complete")
-        else: # h1
-            print("Already logged in.")
 
     def _waitPrintReportReady(self):
         self.navWait.until(ExpCond.presence_of_element_located((By.XPATH, '//section[contains(@class,"page--print-layout")]')))

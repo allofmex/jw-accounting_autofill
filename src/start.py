@@ -30,12 +30,13 @@ def helpMsg():
 
 
 async def printMainMenu():
-    print("1: Upload transactions")
+    print("1: Upload transactions from bank account export")
     print("3: Prepare fund transfer form")
     print("4: Prepare fund transfer approval mail")
-    print("5: Finalize month and download reports")
+    print("5: Download reports after month was finalized")
+    print("8: Prepare account report mail")
     print("9: Exit")
-    selected = _requestUserSelection("Please select number", [1,3,4,5,9], int.__class__)
+    selected = _requestUserSelection("Please select number", [1,3,4,5,8,9], int.__class__)
     if selected == 1:
         print("Starting upload")
         await _runTransactionUpload()
@@ -48,6 +49,9 @@ async def printMainMenu():
     elif selected == 5:
         print("Starting finalizing")
         await _runFinalizingOfMonth()
+    elif selected == 8:
+        print("Preparing mail")
+        await _runReportMail()
     elif selected == 9:
         sys.exit()
 
@@ -99,6 +103,11 @@ async def _runFinalizingOfMonth():
     tool = MonthCloser(config)
     await tool.run(task)
 
+async def _runReportMail():
+    _assertMonth()
+    task = AccountTask(None, month)
+    mailer = ReportMailer(config)
+    await mailer.prepareAccountsReportMail(task)
 
 
 try:

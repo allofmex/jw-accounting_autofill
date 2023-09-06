@@ -14,24 +14,36 @@ class ReportMailer():
         self._mailer = None
 
     async def prepareTransferApprovalMail(self, task: AccountTask):
-        subject = substitude(self._config.get(Config.MAIL_SUBJECT_TRANSFER_APPROVAL), task)
-        acc = self._config.get(Config.MAIL_ACC_TRANSFER_APPROVAL)
+        formPath = self._getMostRecentFile(substitude(self._config.get(Config.FILEPATH_TO62), task))
+        accountBalance = self._getUserInput(f"Enter bank account balance at end of {task.getMonth().strftime('%b')}: ")
         templatePath = self._config.get(Config.MAIL_TEMPLATE_TRANSFER_APPROVAL)
         template = substitude(loadTemplate(templatePath), task)
-
-        formPath = self._getMostRecentFile(substitude(self._config.get(Config.FILEPATH_TO62), task))
-
-        accountBalance = self._getUserInput(f"Enter bank account balance at end of {task.getMonth().strftime('%b')}: ")
         template = template.replace("%%BALANCE%%", self._toLocaleAmount(accountBalance))
         transferAmount = self._getUserInput("Enter amount to transfer: ")
         template = template.replace("%%AMOUNT%%", self._toLocaleAmount(transferAmount))
+        await self._prepareMail(Config.MAIL_SUBJECT_TRANSFER_APPROVAL,
+                          Config.MAIL_ACC_TRANSFER_APPROVAL, task)
+        await self._mailer.setBody(template)
+        await self._mailer.addAttachment(formPath)
+        
+    async def prepareAccountsReportMail(self, task: AccountTask):
+        reportPath = self._getMostRecentFile(substitude(self._config.get(Config.FILEPATH_S30), task))
+        sheetPath = self._getMostRecentFile(substitude(self._config.get(Config.FILEPATH_S26), task))
+        templatePath = self._config.get(Config.MAIL_TEMPLATE_ACCOUNT_REPORT)
+        template = substitude(loadTemplate(templatePath), task)
+        await self._prepareMail(Config.MAIL_SUBJECT_ACCOUNT_REPORT,
+                          Config.MAIL_ACC_ACCOUNT_REPORT, task)
+        await self._mailer.setBody(template)
+        await self._mailer.addAttachment(reportPath)
+        await self._mailer.addAttachment(sheetPath)
 
+    async def _prepareMail(self, subjectKey, accKey, task: AccountTask):
+        subject = substitude(self._config.get(subjectKey), task)
+        acc = self._config.get(accKey)
         await self._initMailingHelper()
         await self._mailer.startNewMail()
         await self._mailer.setSubject(subject)
-        await self._mailer.setBody(template)
         await self._mailer.setTo(acc)
-        await self._mailer.addAttachment(formPath)
 
     def _getUserInput(self, msg: str):
         while True:
@@ -64,7 +76,7 @@ class ReportMailer():
             
             return str(files[selIdx-1])
         else:
-            raise Exception(f"No TO-62 form ({fileName}) found in {resultPath}. Did you created it already?")
+            raise Exception(f"No form ({fileName}) found in {resultPath}. Did you created it already?")
     
     async def _initMailingHelper(self):
         if self._mailer is None:

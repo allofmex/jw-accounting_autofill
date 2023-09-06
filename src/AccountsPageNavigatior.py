@@ -1,6 +1,5 @@
 #!/usr/bin/python3
 from selenium.webdriver.common.by import By
-from selenium.webdriver.support.wait import WebDriverWait
 from selenium.webdriver.support import expected_conditions as ExpCond
 from selenium.webdriver.support.select import Select
 

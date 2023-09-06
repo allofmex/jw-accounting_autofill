@@ -16,9 +16,13 @@ class Config:
     MAIL_TEMPLATE_TRANSFER_APPROVAL = 'mailing/fundTransferApproval/bodyTemplate'
     MAIL_ACC_TRANSFER_APPROVAL = 'mailing/fundTransferApproval/acc'
     
+    MAIL_SUBJECT_ACCOUNT_REPORT = 'mailing/accountsReport/subject'
+    MAIL_TEMPLATE_ACCOUNT_REPORT = 'mailing/accountsReport/bodyTemplate'
+    MAIL_ACC_ACCOUNT_REPORT = 'mailing/accountsReport/acc'
+    
     FILEPATH_RESULTS_BASE = 'filePathResultsBase'
     FILEPATH_S26 = 'filePathS26'
-    FILEPATH_S30 = 'filePathS30'
+    FILEPATH_S30 = 'filePathS30' # report
     FILEPATH_TO62 = 'filePathTO62'
 
     def __init__(self, configFilePath, basePath):
@@ -27,20 +31,14 @@ class Config:
         self.content = yaml.load(file, Loader=yaml.SafeLoader)
 
     def get(self, key: str, required: bool = True):
+        data = None
         if key not in self.content:
             # test if multi/level/key
-            levels = key.split('/')
-            if len(levels) > 1:
-                innerContent = self.content
-                for level in levels:
-                    innerContent = innerContent[level]
-                data = innerContent
-            else:
-                data = self._getDefault(key)
+            data = self._getMultiLevelItem(key)
         else:
             data = self.content[key]
         if required == True and data is None:
-            raise Exception(f"Key {key} is empty in config file!")
+            raise Exception(f"Key {key} does not exist or is empty in config file!")
         
         if self._isFilePathKey(key):
             if self._isResultFilePathKey(key):
@@ -54,6 +52,18 @@ class Config:
             data = basePath +data
             data = os.path.expandvars(data)
         return data
+    
+    def _getMultiLevelItem(self, key: str):
+        levels = key.split('/')
+        if len(levels) > 1:
+            innerContent = self.content
+            for level in levels:
+                if level not in innerContent:
+                    return None
+                innerContent = innerContent[level]
+            return innerContent
+        else:
+            return self._getDefault(key)
     
     def _getDefault(self, key: str):
         if key == self.WORK_DIR:

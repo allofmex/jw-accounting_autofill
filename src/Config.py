@@ -11,7 +11,9 @@ class Config:
     
     DESC_JW_ORG_DONATIONS = 'DescDonationsViaJwOrg'
     DESC_KH_MONTHLY = 'DescKhCostsMonthly'
-    
+
+    SUBSTITUDES_PURPOSE = 'transactionLabel'
+
     MAIL_SUBJECT_TRANSFER_APPROVAL = 'mailing/fundTransferApproval/subject'
     MAIL_TEMPLATE_TRANSFER_APPROVAL = 'mailing/fundTransferApproval/bodyTemplate'
     MAIL_ACC_TRANSFER_APPROVAL = 'mailing/fundTransferApproval/acc'
@@ -52,7 +54,17 @@ class Config:
             data = basePath +data
             data = os.path.expandvars(data)
         return data
-    
+
+    def getSubstitude(self, baseKey: str, needle: str):
+        """
+        User defined strings to replace original/imported label
+        """
+        substitudes = self.get(baseKey, False);
+        if (substitudes is None):
+            return None
+        if needle in substitudes:
+            return self.get(f"{baseKey}/{needle}/targetLabel", True)
+
     def _getMultiLevelItem(self, key: str):
         levels = key.split('/')
         if len(levels) > 1:

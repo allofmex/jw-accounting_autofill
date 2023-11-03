@@ -19,8 +19,17 @@ class Transaction:
     def setPurpose(self, txt: dict):
         self._purpose = txt
         
+    def setOverridePurpose(self, txt: str):
+        self._purpose['override'] = txt
+    
+    def isIncommingBankTransfer(self):
+        return self._action == "GUTSCHR. UEBERW. DAUERAUFTR" or self._action == "GUTSCHR. UEBERWEISUNG"
+    
     def isDonation(self):
-        return 'txt' in self._purpose and (self._action == "GUTSCHR. UEBERW. DAUERAUFTR" or self._action == "GUTSCHR. UEBERWEISUNG")
+        return self.isIncommingBankTransfer() and 'txt' in self._purpose and "spende" in self._purpose['txt'].lower()
+
+    def isOtherContribution(self):
+        return self.isIncommingBankTransfer() and 'txt' in self._purpose and "spende" not in self._purpose['txt'].lower()
         
     def isJwDonation(self):
         return 'Jehovas Zeugen In Deutschland, K. D. O. R.' in self._name
@@ -47,13 +56,20 @@ class Transaction:
         return self._amount
     
     def getSubject(self):
-        return self._purpose['txt'] if 'txt' in self._purpose else ""
-        
+        if 'override' in self._purpose:
+            return self._purpose['override']
+        elif 'txt' in self._purpose:
+            return self._purpose['txt']
+        else:
+            return ""
+
     def _getTypePrint(self):
         if self.isDonation():
             return "Donation"
         elif self.isJwDonation():
             return "JWORG Donation"
+        elif self.isOtherContribution():
+            return "Other contribution"
         elif self.isFundsTransfer():
             return "FundTransfer"
         elif self.isBankingCosts():
@@ -65,9 +81,7 @@ class Transaction:
         return "UNKNOWN!";
     
     def __repr__(self):
-        purpose = self._purpose['txt'] if 'txt' in self._purpose else ""
-
-            
+        purpose = self.getSubject()
         if len(purpose) > 30:
             purpose = purpose[:30]+".."
         return "<Transaction "+self._date.strftime("%d.%m.%y") +f"  {self._name:50s} {self._amount:10.2f}  {purpose:35s} {self._getTypePrint():10s}>"

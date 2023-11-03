@@ -6,6 +6,7 @@ from AccountsPageNavigatior import AccountsPageNavigatior
 from Transaction import Transaction
 from Config import Config
 from TransactionTaskInfo import TransactionTaskInfo
+from typing import List
 
 class AccountingTool:
     CAT_HALL = 'eaac3e7e-bb9e-4bc9-b35b-5bb1a3a7fe5e'
@@ -23,9 +24,10 @@ class AccountingTool:
         # reportReader.read(SCRIPT_PATH+"/umsatz2.csv")
         reportReader.read(taskInfo.getSourceFile())
         transactions = reportReader.getTransactions()
+        self._updateUserSubstitudes(transactions)
         print("Found data:")
         reportReader.printData()
-        if not self._requestUserConfirm("Is this correct? [y/n]"):
+        if not self._requestUserConfirm("Is this correct? (Transactions will be created on website!) [y/n]"):
             print("Exiting")
             return
         
@@ -71,6 +73,9 @@ class AccountingTool:
                 self._logTransaction("Banking costs", transaction)
             elif transaction.isFundsTransfer():
                 print(f"Fund transfer found {transaction.getAmount()}. Skipping because it does not need to handled.")
+            elif transaction.isOtherContribution():
+                await targetNav.addElectronicContrib(transaction.getDate(), transaction.getAmount(), transaction.getSubject())
+                self._logTransaction("Other incomming contribution", transaction)
             else:
                 print("Unhandled transaction!"+str(transaction))
 
@@ -90,3 +95,11 @@ class AccountingTool:
                 return True
             elif key == 'n':
                 return False
+    
+    def _updateUserSubstitudes(self, transactions: List[Transaction]):
+        for transaction in transactions:
+            subject = transaction.getSubject()
+            overridePurpose = self.config.getSubstitude(Config.SUBSTITUDES_PURPOSE, subject)
+            if overridePurpose is not None:
+                print(f"'{subject}' replaced by '{overridePurpose}'")
+                transaction.setOverridePurpose(overridePurpose)

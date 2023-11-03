@@ -1,11 +1,33 @@
-## Please update following values according to your needs
+## Please update following values according to your needs and rename file to config.yml
+congregationName: Name (Place)
 
 ## You may disable the username line if you prefer to enter your credentials manually during tool run
-websiteUserName: "me@jwpub.org"
+websiteUserName: "loginname@j...ub.org"
+
+DescDepositCashFunds: Label cash deposit
+DescDonationsViaJwOrg: Label for donations via website (dd.mm.yy)
+
+transactionLabel:
+    ## Subject line string as of bank account report
+    Raumkostenumlage:
+        ## Label to set on website for transaction
+        targetLabel: Raumkostenumlage IK
+        
+mailing:
+    fundTransferApproval:
+        subject: Übertrag WTG %%MONTH_STR%% %%YEAR%%
+        bodyTemplate: templates/uebertrag.md
+        acc:
+            - acc.mail.adress@j..ub.org
+    accountsReport:
+        subject: Rechnungsbericht Versammlung (%%MONTH_STR%% %%YEAR%%)
+        bodyTemplate: templates/rechnungsbericht.md
+        acc:
+            - acc.mail.adress@j..ub.org
 
 ## The following are file names for result files
 ##    (will be relativ path with filePathResultsBase as base path)
-filePathResultsBase: /media/NAS/S-Main/Daten/Desk_Workspace/Eclipse/jw_accounting_autofill
+filePathResultsBase: $HOME/jw_accounting_autofill
 ## You can use (date) placeholder here
 ## Example:
 ##    Report_%%MONTH_STR%%#%%YEAR%%.pdf will create file like Report_May#2023.pdf
@@ -14,4 +36,7 @@ filePathResultsBase: /media/NAS/S-Main/Daten/Desk_Workspace/Eclipse/jw_accountin
 ##      %%YEAR%% -> 2023
 filePathS26: out/Kontenblatt %%MONTH%%#%%YEAR%%.pdf
 filePathS30: out/Rechnungsbericht %%MONTH%%#%%YEAR%%.pdf
-filePathTO62: out/TO-62_X # Übertrag WTG # %%MONTH_STR%% %%YEAR%%.pdf
+filePathTO62: "out/TO-62_X # Übertrag WTG # %%MONTH_STR%% %%YEAR%%.pdf"
+
+## Base name the temporary browser profile will be stored in (should be cleaned up when done to remove login cookie,...)
+browserProfileDir: firefox_profile

@@ -23,7 +23,7 @@ class Transaction:
         self._purpose['override'] = txt
     
     def isIncommingBankTransfer(self):
-        return self._action == "GUTSCHR. UEBERW. DAUERAUFTR" or self._action == "GUTSCHR. UEBERWEISUNG"
+        return self._amount > 0 and self._action == "GUTSCHR. UEBERW. DAUERAUFTR" or self._action == "GUTSCHR. UEBERWEISUNG"
     
     def isDonation(self):
         return self.isIncommingBankTransfer() and 'txt' in self._purpose and "spende" in self._purpose['txt'].lower()
@@ -32,16 +32,17 @@ class Transaction:
         return self.isIncommingBankTransfer() and 'txt' in self._purpose and "spende" not in self._purpose['txt'].lower()
         
     def isJwDonation(self):
-        return 'Jehovas Zeugen In Deutschland, K. D. O. R.' in self._name
+        # unsharp string detect because it is changed frequently (upper/lower case, with/without comma or dots) 
+        return self._amount > 0 and 'jehovas zeugen in deutschland k d' in self._name.lower().replace(',', '').replace('.', '');
     
     def isCashDeposit(self):
         return self._action.startswith("BARGELDEINZAHLUNG")
     
     def isFundsTransfer(self):
-        return 'txt' in self._purpose and 'Einzug jw.org' in self._purpose['txt']
+        return self._amount < 0 and 'txt' in self._purpose and 'Einzug jw.org' in self._purpose['txt']
     
     def isPayment(self):
-        return self._action == "DAUERAUFTRAG" or self._action == "EINZELUEBERWEISUNG"
+        return self._amount < 0 and self._action == "DAUERAUFTRAG" or self._action == "EINZELUEBERWEISUNG"
     
     def isBankingCosts(self):
         return self._action == "ENTGELTABSCHLUSS"

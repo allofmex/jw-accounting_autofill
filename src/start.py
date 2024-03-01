@@ -10,10 +10,12 @@ from TransactionTaskInfo import TransactionTaskInfo
 from AccountTask import AccountTask
 from Config import Config
 from ReportMailer import ReportMailer
+from ProjectDonations import ProjectDonations
+from ProjectTask import ProjectTask
 
 SCRIPT_PATH = os.path.dirname(__file__)
 BASE_PATH = os.path.dirname(SCRIPT_PATH)
-config = month = accountName = sourceFile = None
+config = month = accountName = projectName = sourceFile = None
 simulationOnly = False;
 
 def helpMsg():
@@ -23,6 +25,7 @@ def helpMsg():
     print("<run.sh> [--source=mt940.csv | --month=2023-05 | --help]")
     print("m|month         Date string YYYY-MM")
     print("a|account       Bank account name as used on jw org")
+    print("p|project       Project name as used on website (for construction project donations,..)")
     print("s|source        Source file to import (e.g. mt940.csv)")
     print()
     print("Use MT940 csv format for bank account export")
@@ -34,9 +37,10 @@ async def printMainMenu():
     print("3: Prepare fund transfer form")
     print("4: Prepare fund transfer approval mail")
     print("5: Download reports after month was finalized")
+    print("6: Read special project donations")
     print("8: Prepare account report mail")
     print("9: Exit")
-    selected = _requestUserSelection("Please select number", [1,3,4,5,8,9], int.__class__)
+    selected = _requestUserSelection("Please select number", [1,3,4,5,6,8,9], int.__class__)
     if selected == 1:
         print("Starting upload")
         await _runTransactionUpload()
@@ -49,6 +53,9 @@ async def printMainMenu():
     elif selected == 5:
         print("Starting finalizing")
         await _runFinalizingOfMonth()
+    elif selected == 6:
+        print("Reading project donations")
+        await _runProjectDonations()
     elif selected == 8:
         print("Preparing mail")
         await _runReportMail()
@@ -63,6 +70,10 @@ def _assertMonthAndAccountName():
     _assertMonth()
     if month is None or accountName is None:
         raise Exception("You must provide --account option")
+    
+def _assertProjectName():
+    if projectName is None:
+        raise Exception("You must provide --project option")
 
 def _requestUserSelection(msg, allowedKeys: List, typeClass):
     print(msg)
@@ -102,7 +113,15 @@ async def _runFinalizingOfMonth():
     task = AccountTask(accountName, month)
     tool = MonthCloser(config)
     await tool.run(task)
-
+    
+async def _runProjectDonations():
+    _assertMonthAndAccountName()
+    _assertProjectName()
+    task = ProjectTask(accountName, projectName, month)
+    tool = ProjectDonations(config)
+    amount = await tool.readDonations(task)
+    print(f'Found {amount}')
+    
 async def _runReportMail():
     _assertMonth()
     task = AccountTask(None, month)
@@ -112,7 +131,7 @@ async def _runReportMail():
 
 try:
     argumentList = sys.argv[1:]
-    options, remainder = getopt.getopt(argumentList, "ams:h", ["account=", "month=", "source=", "simulate", "help"])
+    options, remainder = getopt.getopt(argumentList, "amsp:h", ["account=", "project=", "month=", "source=", "simulate", "help"])
     for opt, arg in options:
         if opt in ('-m', '--month'):
             try:
@@ -122,6 +141,8 @@ try:
             print("Selected month: "+datetime.strftime(month, "%B %Y"))
         if opt in ('a', '--account'):
             accountName = arg
+        if opt in ('p', '--project'):
+            projectName = arg
         if opt in ('s', '--source'):
             sourceFile = arg
         if opt in ('--simulate'):

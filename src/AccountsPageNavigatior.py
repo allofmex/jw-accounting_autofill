@@ -5,12 +5,19 @@ from selenium.webdriver.support.select import Select
 
 import locale
 from _datetime import date
+import re
 
 from jw_page_navigation.PageNavigator import PageNavigator
 
 class AccountsPageNavigatior(PageNavigator):
 
     _isSimulation = False
+
+    async def loginAndNavMonth(self, accountName : str, month : date):
+        await self.navigateToHub()
+        await self.navAccounting()
+        await self.navAccount(accountName)
+        await self.navMonth(month)
 
     async def navAccounting(self):
         await self._navWithBtnForUrl("app/field-accounting")
@@ -37,9 +44,25 @@ class AccountsPageNavigatior(PageNavigator):
         for btn in monthBtn:
             if btn.text == searchedMonthstr:
                 btn.click()
+                self.navWait.until(ExpCond.presence_of_element_located((By.XPATH, '//app-entity-header[contains(@pageheader, "Accounting_HdgMonthlyActivity_Colon")]')))
                 return
         raise Exception(f'{searchedMonthstr} not found!')
     
+    async def navMonthSummary(self):
+        sumBlock = self.navWait.until(ExpCond.element_to_be_clickable((By.TAG_NAME, 'app-activity-summary'))) # not clickable
+        sumBlock.find_element(By.CLASS_NAME, 'card__collapsible-header').click()
+
+    async def readProjectDonation(self, projectName: str) -> float :
+        summaryItems = self.driver.find_elements(By.XPATH, '//dt[contains(@class, "data__label")]')
+        for labelItem in summaryItems:
+            if labelItem.text == projectName:
+                parent = labelItem.find_element(By.XPATH, './..')
+                valueWithCurrency = parent.find_element(By.CLASS_NAME, 'currency-amount').text
+                match = re.search("^([\d,.]+)[,.](\d{2})\s.*$", valueWithCurrency)
+                if (match is None):
+                    raise Exception(f'Amount could not be parsed from {valueWithCurrency}')
+                return float(f'{match.group(1)}.{match.group(2).replace(",","").replace(".","")}')
+
     async def navCloseMonthStart(self):
         closeMonthStartBtn = self.navWait.until(ExpCond.presence_of_element_located((By.XPATH, '//ptrn-icon[contains(@icon, "calendar-checkmark")]')))
         # closeMonthStartBtn = self.driver.find_elements(By.XPATH, '//ptrn-icon[contains(icon, "calendar-checkmark")]')

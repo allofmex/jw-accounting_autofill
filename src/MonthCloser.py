@@ -24,9 +24,8 @@ class MonthCloser:
                 break
             else:
                 print("Invalid input")
-        targetNav = AccountsPageNavigatior(self.config.get(Config.BROWSER_PROFILE_DIR),
-                                   self.downloadDir)
-        await self._loginAndNavMonth(taskInfo, targetNav);
+        targetNav = self._createNavigator()
+        await targetNav.loginAndNavMonth(taskInfo.getAccountName(), taskInfo.getMonth());
         await targetNav.navCloseMonthStart()
         await targetNav.setResultionInput(resolutionValue)
         print("Creating TO-62 form")
@@ -36,9 +35,8 @@ class MonthCloser:
 
     async def run(self, taskInfo : AccountTask):
         print("Finishing monthly report for account "+taskInfo.getAccountName())
-        targetNav = AccountsPageNavigatior(self.config.get(Config.BROWSER_PROFILE_DIR),
-                           self.downloadDir)
-        await self._loginAndNavMonth(taskInfo, targetNav)
+        targetNav = self._createNavigator()
+        await targetNav.loginAndNavMonth(taskInfo.getAccountName(), taskInfo.getMonth())
         await targetNav.downloadReportS30()
         s30targetFile = await self._savePrintResult(self.config.get(Config.FILEPATH_S30), taskInfo)
         print(f"S-30 saved to {s30targetFile}")
@@ -49,14 +47,12 @@ class MonthCloser:
         print(f"S-26 saved to {s26targetFile}")
         print("Monthly reports downloaded. Please handle remaining tasks manually")
 
-    async def _loginAndNavMonth(self, taskInfo: AccountTask, targetNav: AccountsPageNavigatior):
+    def _createNavigator(self):
+        targetNav = AccountsPageNavigatior(self.config.get(Config.BROWSER_PROFILE_DIR), self.downloadDir)
         userName = self.config.get(Config.WEBSITE_USERNAME, False)
         if userName is not None:
             targetNav.setCredentials(userName, None)
-        await targetNav.navigateToHub()
-        await targetNav.navAccounting()
-        await targetNav.navAccount(taskInfo.getAccountName())
-        await targetNav.navMonth(taskInfo.getMonth())
+        return targetNav
 
     async def _savePrintResult(self, targetFilePath: str, taskInfo : AccountTask) -> str:
         printedFile = f'{self.downloadDir}/printed.pdf'

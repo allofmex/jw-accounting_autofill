@@ -42,7 +42,7 @@ class Transaction:
         return self._amount < 0 and 'txt' in self._purpose and 'Einzug jw.org' in self._purpose['txt']
     
     def isPayment(self):
-        return self._amount < 0 and self._action == "DAUERAUFTRAG" or self._action == "EINZELUEBERWEISUNG"
+        return self._amount < 0 and self._action == "DAUERAUFTRAG" or self._action == "EINZELUEBERWEISUNG" or self._action == "ONLINE-UEBERWEISUNG"
     
     def isBankingCosts(self):
         return self._action == "ENTGELTABSCHLUSS"

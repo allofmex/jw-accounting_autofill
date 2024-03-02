@@ -58,16 +58,30 @@ class AccountsPageNavigatior(PageNavigator):
             if labelItem.text == projectName:
                 parent = labelItem.find_element(By.XPATH, './..')
                 valueWithCurrency = parent.find_element(By.CLASS_NAME, 'currency-amount').text
-                match = re.search("^([\d,.]+)[,.](\d{2})\s.*$", valueWithCurrency)
-                if (match is None):
-                    raise Exception(f'Amount could not be parsed from {valueWithCurrency}')
-                return float(f'{match.group(1)}.{match.group(2).replace(",","").replace(".","")}')
+                return self._parseAmount(valueWithCurrency)
 
     async def navCloseMonthStart(self):
         closeMonthStartBtn = self.navWait.until(ExpCond.presence_of_element_located((By.XPATH, '//ptrn-icon[contains(@icon, "calendar-checkmark")]')))
         # closeMonthStartBtn = self.driver.find_elements(By.XPATH, '//ptrn-icon[contains(icon, "calendar-checkmark")]')
         closeMonthStartBtn.click()
-        
+
+    async def readTransferAmountFromDonationBox(self) -> float:
+        """ Reading amount that will be transfered additionally to resolution amount
+        (from worldwide donation box or project donations)
+        """
+        self.navWait.until(ExpCond.presence_of_element_located((By.TAG_NAME, 'app-total-amount')))
+        form = self.driver.find_element(By.XPATH, '//section[contains(@class, "step__content")]')
+        items = form.find_elements(By.XPATH, '//div[contains(@class, "grid__item")]')
+        amount = 0
+        for gridItem in items:
+            itemElements = gridItem.find_elements(By.XPATH, "*")
+            if (len(itemElements) > 0 and itemElements[0].tag_name == "p"):
+                # read only grid-items containing p tag, others are inputs or summary
+                amount += self._parseAmount(gridItem.text)
+        if amount <= 0:
+            raise Exception("No non-congregation donations item found, maybe this tool needs an update..")
+        return amount
+
     async def setResultionInput(self, amount: int):
         self.navWait.until(ExpCond.presence_of_element_located((By.TAG_NAME, 'app-total-amount')))
         ## no unique identifier available für input fields
@@ -191,3 +205,9 @@ class AccountsPageNavigatior(PageNavigator):
 
     def _waitPrintReportReady(self):
         self.navWait.until(ExpCond.presence_of_element_located((By.XPATH, '//section[contains(@class,"page--print-layout")]')))
+
+    def _parseAmount(self, valueWithCurrency: str) -> float:
+        match = re.search("^([\d,.]+)[,.](\d{2})\s.*$", valueWithCurrency)
+        if (match is None):
+            raise Exception(f'Amount could not be parsed from {valueWithCurrency}')
+        return float(f'{match.group(1)}.{match.group(2).replace(",","").replace(".","")}')

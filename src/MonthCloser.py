@@ -17,6 +17,11 @@ class MonthCloser:
         os.makedirs(self.downloadDir, exist_ok=True, mode=700)
         
     async def prepareTransferReport(self, taskInfo : AccountTask):
+        targetNav = self._createNavigator()
+        await targetNav.loginAndNavMonth(taskInfo.getAccountName(), taskInfo.getMonth());
+        await targetNav.navCloseMonthStart()
+        nonCongregationDonations = await targetNav.readTransferAmountFromDonationBox()
+        print(f"Other donations that will be transferred additionally to resolution amount (worldwide work and projects): {nonCongregationDonations}")
         while True:
             resolutionValueStr = input("Enter amount to transfer (by resolution): ")
             if resolutionValueStr.isnumeric():
@@ -24,9 +29,6 @@ class MonthCloser:
                 break
             else:
                 print("Invalid input")
-        targetNav = self._createNavigator()
-        await targetNav.loginAndNavMonth(taskInfo.getAccountName(), taskInfo.getMonth());
-        await targetNav.navCloseMonthStart()
         await targetNav.setResultionInput(resolutionValue)
         print("Creating TO-62 form")
         await targetNav.downloadReportTO62()

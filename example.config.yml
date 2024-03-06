@@ -38,5 +38,7 @@ filePathS26: out/Kontenblatt %%MONTH%%#%%YEAR%%.pdf
 filePathS30: out/Rechnungsbericht %%MONTH%%#%%YEAR%%.pdf
 filePathTO62: "out/TO-62_X # Übertrag WTG # %%MONTH_STR%% %%YEAR%%.pdf"
 
+filePathProjectDonations: out/Project Donations.csv
+
 ## Base name the temporary browser profile will be stored in (should be cleaned up when done to remove login cookie,...)
 browserProfileDir: firefox_profile

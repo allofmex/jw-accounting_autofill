@@ -38,19 +38,30 @@ class AccountsPageNavigatior(PageNavigator):
         await self._navWithBtnForUrl("/sheets", "side-nav__link")
         # self.navWait.until(ExpCond.presence_of_element_located((By.XPATH, '//a[contains(@href, "/sheets") and contains(@class, "side-nav__link")]'))).click()
         self.navWait.until(ExpCond.presence_of_element_located((By.TAG_NAME, 'app-period-list')))
-        monthBtn = self.driver.find_elements(By.XPATH, '//a[contains(@href, "/sheets/")]')
-        locale.setlocale(locale.LC_TIME,'de_DE.UTF-8')
-        searchedMonthstr = month.strftime("%B %Y") # like "May 2023"
-        for btn in monthBtn:
-            if btn.text == searchedMonthstr:
-                btn.click()
-                self.navWait.until(ExpCond.presence_of_element_located((By.XPATH, '//app-entity-header[contains(@pageheader, "Accounting_HdgMonthlyActivity_Colon")]')))
-                return
+        container = self.driver.find_element(By.TAG_NAME, 'app-sheets-by-year')
+        yearList = container.find_elements(By.TAG_NAME, 'article')
+        searchedYearStr = month.strftime("%Y") # like "May 2023"
+        for yearToggle in yearList:
+            if yearToggle.text == searchedYearStr:
+                if 'card--collapsed' in yearToggle.get_attribute('class'):
+                    yearToggle.click()
+                yearArticleId = yearToggle.get_attribute('id')
+                self.navWait.until(ExpCond.presence_of_element_located((By.XPATH, f"//article[@id='{yearArticleId}']//ul")))
+                monthBtn = yearToggle.find_elements(By.XPATH, "//a[contains(@href, '/sheets/')]")
+                locale.setlocale(locale.LC_TIME,'de_DE.UTF-8')
+                searchedMonthstr = month.strftime("%B") # like "May"
+                for btn in monthBtn:
+                    if btn.text == searchedMonthstr:
+                        btn.click()
+                        self.navWait.until(ExpCond.presence_of_element_located((By.XPATH, '//app-entity-header[contains(@pageheader, "Accounting_HdgMonthlyActivity_Colon")]')))
+                        return
         raise Exception(f'{searchedMonthstr} not found!')
     
     async def navMonthSummary(self):
         sumBlock = self.navWait.until(ExpCond.element_to_be_clickable((By.TAG_NAME, 'app-activity-summary'))) # not clickable
-        sumBlock.find_element(By.CLASS_NAME, 'card__collapsible-header').click()
+        collapseHead = sumBlock.find_element(By.TAG_NAME, 'article')
+        if 'card--collapsed' in collapseHead.get_attribute('class'):
+            collapseHead.click()
 
     async def readProjectDonation(self, projectName: str) -> float :
         summaryItems = self.driver.find_elements(By.XPATH, '//dt[contains(@class, "data__label")]')

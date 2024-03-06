@@ -10,5 +10,6 @@ dependencies = [
     "readchar",
     "pyyaml",
     "markdown",
+    "pandas",
     "jw_page_navigation @ git+https://code.all-of-mex.de/jw/jw_page_navigation@v0.1.1",
 ]

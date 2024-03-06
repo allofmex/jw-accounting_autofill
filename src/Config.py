@@ -26,6 +26,8 @@ class Config:
     FILEPATH_S26 = 'filePathS26'
     FILEPATH_S30 = 'filePathS30' # report
     FILEPATH_TO62 = 'filePathTO62'
+    
+    FILEPATH_PROJECT_DONATIONS = 'filePathProjectDonations'
 
     def __init__(self, configFilePath, basePath):
         self.basePath = basePath

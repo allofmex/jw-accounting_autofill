@@ -11,7 +11,6 @@ from AccountTask import AccountTask
 from Config import Config
 from ReportMailer import ReportMailer
 from ProjectDonations import ProjectDonations
-from ProjectTask import ProjectTask
 
 SCRIPT_PATH = os.path.dirname(__file__)
 BASE_PATH = os.path.dirname(SCRIPT_PATH)
@@ -117,10 +116,14 @@ async def _runFinalizingOfMonth():
 async def _runProjectDonations():
     _assertMonthAndAccountName()
     _assertProjectName()
-    task = ProjectTask(accountName, projectName, month)
-    tool = ProjectDonations(config)
-    amount = await tool.readDonations(task)
-    print(f'Found {amount}')
+    tool = ProjectDonations(accountName, projectName, config)
+    await tool.update()
+    amount = tool.getSum()
+    tool.printList()
+    print()
+    print('##########################################')
+    print(f"{projectName} donations: {amount:.2f}")
+    print('##########################################')
     
 async def _runReportMail():
     _assertMonth()

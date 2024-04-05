@@ -57,8 +57,8 @@ class AccountReportReader:
 
     def printData(self):
         ''' For debugging '''
-        for transact in self.data:
-            print(transact)
+        for i in range(len(self.data)):
+            print(f"{i:2d}: {self.data[i]}")
 
     def _parseDate(self, row):
         return datetime.strptime(row[self.DATE_COL], "%d.%m.%y")

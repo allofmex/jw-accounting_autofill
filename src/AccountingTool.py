@@ -7,6 +7,7 @@ from Transaction import Transaction
 from Config import Config
 from TransactionTaskInfo import TransactionTaskInfo
 from typing import List
+from Tools import validatedIntegerStr
 
 class AccountingTool:
     CAT_HALL = 'eaac3e7e-bb9e-4bc9-b35b-5bb1a3a7fe5e'
@@ -27,7 +28,7 @@ class AccountingTool:
         self._updateUserSubstitudes(transactions)
         print("Found data:")
         reportReader.printData()
-        if not self._requestUserConfirm("Is this correct? (Transactions will be created on website!) [y/n]"):
+        if not self._requestUserConfirmForUpload(transactions, taskInfo):
             print("Exiting")
             return
         
@@ -46,7 +47,9 @@ class AccountingTool:
         await targetNav.navAccount(taskInfo.getAccountName())
         await targetNav.navMonth(taskInfo.getMonth())
         
-        for transaction in transactions:
+        for i in range(taskInfo.getStartIdx(), len(transactions)):
+        # for transaction in transactions:
+            transaction = transactions[i]
             if transaction.isDonation():
                 # if not self._isSimulation:
                 await targetNav.addElectronicContrib(transaction.getDate(), transaction.getAmount())
@@ -87,15 +90,36 @@ class AccountingTool:
         tag = "SIMULATED" if self._isSimulation else ""
         print(f"  {label:20s} handled.    {date} {transaction.getAmount():10.2f}   {tag}")
 
-    def _requestUserConfirm(self, msg):
-        print(msg)
+    def _requestUserConfirmForUpload(self, transactions: List[Transaction], taskInfo: TransactionTaskInfo):
+        print("Is this correct? (Transactions will be created on website!) [(y)es / (n)o / (r)esume previous upload]")
         while True:
             key = readchar.readkey()
             if key == 'y':
                 return True
             elif key == 'n':
                 return False
-    
+            elif key == 'r': 
+                print("What row number to start to upload? (q for quit)")
+                numStr = ''
+                while True:
+                    key = readchar.readkey()
+                    if key == readchar.key.ENTER:
+                        try:
+                            startIdx = validatedIntegerStr(numStr, 0, len(transactions) -1)
+                            startIdx = int(numStr)
+                            taskInfo.setStartIdx(startIdx)
+                            print(f"Starting from row {startIdx}")
+                            return True
+                        except ValueError as e:
+                            print("Invalid number")
+                            print(e)
+                            numStr = ''
+                    elif key == 'q':
+                        return False
+                    else:
+                        print(key, end='', flush=True)
+                        numStr += key
+
     def _updateUserSubstitudes(self, transactions: List[Transaction]):
         for transaction in transactions:
             subject = transaction.getSubject()

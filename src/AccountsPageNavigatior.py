@@ -72,8 +72,8 @@ class AccountsPageNavigatior(PageNavigator):
                 return self._parseAmount(valueWithCurrency)
 
     async def navCloseMonthStart(self):
-        closeMonthStartBtn = self.navWait.until(ExpCond.presence_of_element_located((By.XPATH, '//ptrn-icon[contains(@icon, "calendar-checkmark")]')))
-        # closeMonthStartBtn = self.driver.find_elements(By.XPATH, '//ptrn-icon[contains(icon, "calendar-checkmark")]')
+        ## select by icon but click on ancestor button (else obscured by button error)
+        closeMonthStartBtn = self.navWait.until(ExpCond.presence_of_element_located((By.XPATH, '//ptrn-icon[contains(@icon, "calendar-checkmark")]/ancestor::button')))
         closeMonthStartBtn.click()
 
     async def readTransferAmountFromDonationBox(self) -> float:

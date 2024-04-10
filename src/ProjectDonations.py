@@ -56,7 +56,10 @@ class ProjectDonations:
                 if not self._hasValidValue(monthData, 'local'):
                     print(f"Searching for amount of transfered local donations for {year}-{month}")
                     amount = await self.readTransferedProjectDonation(date)
-                    print(f"Found {amount} for {year}-{month}")
+                    if amount > 0:
+                        print(f"Found {amount} for {year}-{month}")
+                    else:
+                        print(f"No project donations found for {year}-{month}. Correct?")
                     self.addLocalDonation(date, amount)
                 if not self._hasValidValue(monthData, 'online'):
                     print(f"Missing amount of online donations for {year}-{month}")
@@ -88,9 +91,9 @@ class ProjectDonations:
         date = date.replace(day=1)
         self._loadData()
         if self._df is not None and srcType in self._df:
-            existing = self._df.loc[self._df['date'] == date, [srcType]].values
-            if (existing.any()):
-                if existing.sum() != amount:
+            existing = self._df.loc[self._df['date'] == date, [srcType]]
+            if (existing.any(skipna=True).bool()):
+                if existing.values.sum() != amount:
                     raise Exception(f"Amount {amount} does not match existing amount {existing.sum()} for {srcType}")
                 else:
                     # already present
@@ -116,6 +119,7 @@ class ProjectDonations:
 
     def _loadData(self):
         if self._df is None and path.isfile(self._filePath):
+            print("Loading history data from file...")
             self._df = pd.read_csv(self._filePath)
             self._df['date'] = pd.to_datetime(self._df['date'], format='%Y-%m-%d')
         return self._df

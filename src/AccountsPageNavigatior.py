@@ -70,6 +70,7 @@ class AccountsPageNavigatior(PageNavigator):
                 parent = labelItem.find_element(By.XPATH, './..')
                 valueWithCurrency = parent.find_element(By.CLASS_NAME, 'currency-amount').text
                 return self._parseAmount(valueWithCurrency)
+        return 0
 
     async def navCloseMonthStart(self):
         ## select by icon but click on ancestor button (else obscured by button error)

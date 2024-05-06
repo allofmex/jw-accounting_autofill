@@ -4,6 +4,7 @@ __pycache__/
 *$py.class
 *.log
 *.egg-info
+/build
 
 /.project
 /.pydevproject

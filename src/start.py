@@ -11,6 +11,7 @@ from AccountTask import AccountTask
 from Config import Config
 from ReportMailer import ReportMailer
 from ProjectDonations import ProjectDonations
+from Tools import clearBrowserProfile
 
 SCRIPT_PATH = os.path.dirname(__file__)
 BASE_PATH = os.path.dirname(SCRIPT_PATH)
@@ -39,7 +40,8 @@ async def printMainMenu():
     print("6: Read special project donations")
     print("8: Prepare account report mail")
     print("9: Exit")
-    selected = _requestUserSelection("Please select number", [1,3,4,5,6,8,9], int.__class__)
+    print("0: Clear browser cache/profile/cookies")
+    selected = _requestUserSelection("Please select number", [1,3,4,5,6,8,9,0], int.__class__)
     if selected == 1:
         print("Starting upload")
         await _runTransactionUpload()
@@ -60,6 +62,8 @@ async def printMainMenu():
         await _runReportMail()
     elif selected == 9:
         sys.exit()
+    elif selected == 0:
+        clearBrowserProfile(config)
 
 def _assertMonth():
     if month is None:

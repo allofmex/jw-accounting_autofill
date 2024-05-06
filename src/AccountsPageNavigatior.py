@@ -214,7 +214,7 @@ class AccountsPageNavigatior(PageNavigator):
         addBtn = self.navWait.until(ExpCond.presence_of_element_located((By.XPATH, '//a[contains(@href, "'+urlPathSegment+'") and contains(@class, "list__action")]')))
         addBtn.click()
         self.navWait.until(ExpCond.presence_of_element_located((By.XPATH, 
-                "//app-e-contribution-container | //app-add-edit-transaction-container | //app-deposited-contributions-container")))
+                "//app-e-contribution-container | //app-add-edit-transaction-container | //app-deposited-contributions-container | //app-paid-expense-container")))
 
     def _waitPrintReportReady(self):
         self.navWait.until(ExpCond.presence_of_element_located((By.XPATH, '//section[contains(@class,"page--print-layout")]')))

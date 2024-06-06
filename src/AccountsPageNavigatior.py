@@ -40,22 +40,29 @@ class AccountsPageNavigatior(PageNavigator):
         self.navWait.until(ExpCond.presence_of_element_located((By.TAG_NAME, 'app-period-list')))
         container = self.driver.find_element(By.TAG_NAME, 'app-sheets-by-year')
         yearList = container.find_elements(By.TAG_NAME, 'article')
+        if len(yearList) == 0:
+            raise Exception(f'Yearlist not found!')
+        locale.setlocale(locale.LC_TIME,'de_DE.UTF-8')
         searchedYearStr = month.strftime("%Y") # like "May 2023"
         for yearToggle in yearList:
-            if yearToggle.text == searchedYearStr:
+            yearHeader = yearToggle.find_element(By.XPATH, '//div[contains(@class, "card__header-wrapper")]')
+            print(f'Found year {yearHeader.text}')
+            if yearHeader.text == searchedYearStr:
                 if 'card--collapsed' in yearToggle.get_attribute('class'):
                     yearToggle.click()
                 yearArticleId = yearToggle.get_attribute('id')
                 self.navWait.until(ExpCond.presence_of_element_located((By.XPATH, f"//article[@id='{yearArticleId}']//ul")))
                 monthBtn = yearToggle.find_elements(By.XPATH, "//a[contains(@href, '/sheets/')]")
-                locale.setlocale(locale.LC_TIME,'de_DE.UTF-8')
-                searchedMonthstr = month.strftime("%B") # like "May"
+                searchedMonthStr = month.strftime("%B") # like "May"
                 for btn in monthBtn:
-                    if btn.text == searchedMonthstr:
+                    if btn.text == searchedMonthStr:
                         btn.click()
                         self.navWait.until(ExpCond.presence_of_element_located((By.XPATH, '//app-entity-header[contains(@pageheader, "Accounting_HdgMonthlyActivity_Colon")]')))
                         return
-        raise Exception(f'{searchedMonthstr} not found!')
+                raise Exception(f'{searchedMonthStr} not found!')
+            else:
+                raise Exception(f'Year entry "{searchedYearStr}" not found!')
+
     
     async def navMonthSummary(self):
         sumBlock = self.navWait.until(ExpCond.element_to_be_clickable((By.TAG_NAME, 'app-activity-summary'))) # not clickable

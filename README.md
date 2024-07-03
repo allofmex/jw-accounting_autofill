@@ -12,7 +12,7 @@ Download tool.
 Create virtual environment
 
 ```
-apt install python3.11-venv
+apt install python3-venv python3-pip
 python3 -m venv ~/jw_autofill_venv
 ```
 
@@ -23,6 +23,7 @@ source ~/jw_autofill_venv/bin/activate
 
 pip3 install .
 # pip3 install --editable .
+## For priate gitlab repository create access token in group or repository with scope "read_repository" and at least role Reporter (guest will not work)
 ```
 
 Copy example.config.yml to config.yml and edit values according to your needs

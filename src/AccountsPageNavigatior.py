@@ -91,13 +91,15 @@ class AccountsPageNavigatior(PageNavigator):
         self.navWait.until(ExpCond.presence_of_element_located((By.TAG_NAME, 'app-total-amount')))
         form = self.driver.find_element(By.XPATH, '//section[contains(@class, "step__content")]')
         items = form.find_elements(By.XPATH, '//div[contains(@class, "grid__item")]')
-        amount = 0
+        amount = None
         for gridItem in items:
             itemElements = gridItem.find_elements(By.XPATH, "*")
             if (len(itemElements) > 0 and itemElements[0].tag_name == "p"):
                 # read only grid-items containing p tag, others are inputs or summary
+                if amount is None:
+                    amount = 0
                 amount += self._parseAmount(gridItem.text)
-        if amount <= 0:
+        if amount is None:
             raise Exception("No non-congregation donations item found, maybe this tool needs an update..")
         return amount
 

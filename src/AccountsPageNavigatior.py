@@ -81,7 +81,7 @@ class AccountsPageNavigatior(PageNavigator):
 
     async def navCloseMonthStart(self):
         ## select by icon but click on ancestor button (else obscured by button error)
-        closeMonthStartBtn = self.navWait.until(ExpCond.presence_of_element_located((By.XPATH, '//ptrn-icon[contains(@icon, "calendar-checkmark")]/ancestor::button')))
+        closeMonthStartBtn = self.navWait.until(ExpCond.presence_of_element_located((By.XPATH, '//ptrn-button[contains(@icon, "calendar-checkmark")]')))
         closeMonthStartBtn.click()
 
     async def readTransferAmountFromDonationBox(self) -> float:

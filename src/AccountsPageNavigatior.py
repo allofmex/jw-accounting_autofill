@@ -209,7 +209,7 @@ class AccountsPageNavigatior(PageNavigator):
         printBtn.click()
 
     async def _navTransactions(self):
-        addBtn = self.navWait.until(ExpCond.presence_of_element_located((By.XPATH, '//a[contains(@href, "/transactions") and contains(@class, "button--action")]')))
+        addBtn = self.navWait.until(ExpCond.presence_of_element_located((By.XPATH, '//ptrn-button[contains(@icon, "add-circle")]')))
         addBtn.click()
 
     async def _navTransaction(self, urlPathSegment):

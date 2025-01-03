@@ -7,6 +7,7 @@ from jw_page_navigation.MailingHelper import MailingHelper
 from Config import Config
 from Template import substitude, loadTemplate
 from AccountTask import AccountTask
+from DesktopMailer import DesktopMailer
 
 class ReportMailer():
     def __init__(self, config: Config):
@@ -25,6 +26,7 @@ class ReportMailer():
                           Config.MAIL_ACC_TRANSFER_APPROVAL, task)
         await self._mailer.setBody(template)
         await self._mailer.addAttachment(formPath)
+        await self._mailer.composeMail()
         
     async def prepareAccountsReportMail(self, task: AccountTask):
         reportPath = self._getMostRecentFile(substitude(self._config.get(Config.FILEPATH_S30), task))
@@ -36,6 +38,7 @@ class ReportMailer():
         await self._mailer.setBody(template)
         await self._mailer.addAttachment(reportPath)
         await self._mailer.addAttachment(sheetPath)
+        await self._mailer.composeMail()
 
     async def _prepareMail(self, subjectKey, accKey, task: AccountTask):
         subject = substitude(self._config.get(subjectKey), task)
@@ -80,9 +83,15 @@ class ReportMailer():
     
     async def _initMailingHelper(self):
         if self._mailer is None:
-            self._mailer = MailingHelper(self._config.get(Config.BROWSER_PROFILE_DIR))
-            userName = self._config.get(Config.WEBSITE_USERNAME, False)
-            if userName is not None:
-                self._mailer.setCredentials(userName, None)
+            client = self._config.get(Config.MAILER)
+            if client == "jwpub":
+                self._mailer = MailingHelper(self._config.get(Config.BROWSER_PROFILE_DIR))
+                userName = self._config.get(Config.WEBSITE_USERNAME, False)
+                if userName is not None:
+                    self._mailer.setCredentials(userName, None)
+            elif client == "desktop":
+                self._mailer = DesktopMailer(self._config)
+            else:
+                raise Exception(f'Not implemented for {client}')
         await self._mailer.load()
         

@@ -14,6 +14,10 @@ transactionLabel:
         targetLabel: Raumkostenumlage IK
         
 mailing:
+    ## Client may be 'desktop' or 'jwpub'
+    ## deskop: use Desktops default mail client
+    ## jwpub:  using websites mailing function 
+    client: jwpub
     fundTransferApproval:
         subject: Übertrag WTG %%MONTH_STR%% %%YEAR%%
         bodyTemplate: templates/uebertrag.md

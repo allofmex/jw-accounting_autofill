@@ -14,6 +14,8 @@ class Config:
 
     SUBSTITUDES_PURPOSE = 'transactionLabel'
 
+    MAILER = 'mailing/client'
+
     MAIL_SUBJECT_TRANSFER_APPROVAL = 'mailing/fundTransferApproval/subject'
     MAIL_TEMPLATE_TRANSFER_APPROVAL = 'mailing/fundTransferApproval/bodyTemplate'
     MAIL_ACC_TRANSFER_APPROVAL = 'mailing/fundTransferApproval/acc'

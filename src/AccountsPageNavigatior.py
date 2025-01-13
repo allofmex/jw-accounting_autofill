@@ -153,17 +153,21 @@ class AccountsPageNavigatior(PageNavigator):
         self._completeUpload()
 
     async def downloadReportS26(self):
+        self._expandReportsBtn()
         ## be aware of different dash character for de and en locale!
-        btn = self.navWait.until(ExpCond.presence_of_element_located((By.XPATH, '//button[contains(.,"S‑26") or contains(.,"S-26")]')))
+        btn = self.navWait.until(ExpCond.presence_of_element_located((By.XPATH, '//a[contains(.,"S‑26") or contains(.,"S-26")]')))
         btn.click()
         self._waitPrintReportReady()
+        self._clickPrintBtn()
 
     async def downloadReportS30(self):
+        self._expandReportsBtn()
         ## be aware of different dash character for de and en locale!
-        btn = self.navWait.until(ExpCond.presence_of_element_located((By.XPATH, '//button[contains(.,"S‑30") or contains(.,"S-30")]')))
+        btn = self.navWait.until(ExpCond.presence_of_element_located((By.XPATH, '//a[contains(.,"S‑30") or contains(.,"S-30")]')))
         btn.click()
         self._waitPrintReportReady()
-        
+        self._clickPrintBtn()
+
     async def downloadReportTO62(self):
         ## be aware of different dash character for de and en locale!
         btn = self.navWait.until(ExpCond.presence_of_element_located((By.XPATH, '//a[contains(.,"TO‑62") or contains(.,"TO-62")]')))
@@ -227,3 +231,8 @@ class AccountsPageNavigatior(PageNavigator):
         if (match is None):
             raise Exception(f'Amount could not be parsed from {valueWithCurrency}')
         return float(f'{match.group(1)}.{match.group(2).replace(",","").replace(".","")}')
+
+    def _expandReportsBtn(self):
+        expandableBtn = self.driver.find_element(By.XPATH, '//app-print-reports/ptrn-button')
+        if expandableBtn.get_attribute("aria-expanded") == "false":
+            expandableBtn.click()

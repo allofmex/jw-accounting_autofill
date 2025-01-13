@@ -92,7 +92,7 @@ class ProjectDonations:
         self._loadData()
         if self._df is not None and srcType in self._df:
             existing = self._df.loc[self._df['date'] == date, [srcType]]
-            if (existing.any(skipna=True).bool()):
+            if (existing.any(skipna=True).item()):
                 if existing.values.sum() != amount:
                     raise Exception(f"Amount {amount} does not match existing amount {existing.sum()} for {srcType}")
                 else:

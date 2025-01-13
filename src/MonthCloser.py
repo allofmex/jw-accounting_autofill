@@ -66,6 +66,7 @@ class MonthCloser:
             ttl -= 1
         if ttl == 0:
             print(f'File not found! ({printedFile})')
+            raise Exception(f'Print to pdf failed, no file found at expected location {printedFile}')
             return None
 
         targetDir = os.path.dirname(targetFilePath)
@@ -91,4 +92,3 @@ class MonthCloser:
         while os.path.exists(targetPattern % i):
             i += 1
         return targetPattern % i
-    

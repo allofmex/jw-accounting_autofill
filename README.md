@@ -48,8 +48,30 @@ nano config.yml
 ```
 
 
-## Usage
+## Setup (Windows)
 
+Install Python and Git (You may use [WinGetUI](https://github.com/marticliment/UniGetUI))
+
+
+Create virtual python environment
+Open PowersShell in accounting-tool folder (right click in explorer window)
+
+```
+python -m venv tmp\jw_accounting_autofill_venv_win
+.\tmp\jw_accounting_autofill_venv_win\Scripts\Activate.ps1
+# confirm script warning with 'm' if needed
+```
+
+Install dependencies
+
+```
+python -m pip install .
+```
+
+
+## Usage (Linux)
+
+Activate virtual python environment and start tool
 ```
 source ~/jw_autofill_venv/bin/activate
 ./run.sh --month=2023-06 --source=mt940.csv --account="Accounting sub-account name on jw org" --project="jw org project label"
@@ -58,6 +80,12 @@ source ~/jw_autofill_venv/bin/activate
 Follow the menu.
 The tool will open a browser window and will navigate automatically.
 You may login manually, the tool will wait at this step.
+
+
+## Usage (Windows)
+```
+.\tmp\jw_accounting_autofill_venv_win\Scripts\Activate.ps1
+```
 
 
 ##### Note

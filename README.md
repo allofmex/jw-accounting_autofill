@@ -57,8 +57,8 @@ Create virtual python environment
 Open PowersShell in accounting-tool folder (right click in explorer window)
 
 ```
-python -m venv tmp\jw_accounting_autofill_venv_win
-.\tmp\jw_accounting_autofill_venv_win\Scripts\Activate.ps1
+python -m venv $ENV:TEMP\jw_accounting_autofill_venv
+& "$ENV:TEMP\jw_accounting_autofill_venv\Scripts\Activate.ps1"
 # confirm script warning with 'm' if needed
 ```
 
@@ -84,7 +84,8 @@ You may login manually, the tool will wait at this step.
 
 ## Usage (Windows)
 ```
-.\tmp\jw_accounting_autofill_venv_win\Scripts\Activate.ps1
+& "$ENV:TEMP\jw_accounting_autofill_venv\Scripts\Activate.ps1"
+.\run.bat --month=2023-06 --source=mt940.csv --account="Accounting sub-account name on jw org" --project="jw org project label"
 ```
 
 

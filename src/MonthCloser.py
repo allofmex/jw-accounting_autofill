@@ -54,6 +54,8 @@ class MonthCloser:
         userName = self.config.get(Config.WEBSITE_USERNAME, False)
         if userName is not None:
             targetNav.setCredentials(userName, None)
+        else:
+            print("You may consider setting your username in config file to speedup login.")
         return targetNav
 
     async def _savePrintResult(self, targetFilePath: str, taskInfo : AccountTask) -> str:

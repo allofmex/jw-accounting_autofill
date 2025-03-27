@@ -28,6 +28,8 @@ def helpMsg():
     print("p|project       Project name as used on website (for construction project donations,..)")
     print("s|source        Source file to import (e.g. mt940.csv)")
     print()
+    print("simulate        Use for debugging, will navigate page but chancel confirm step")
+    print()
     print("Use MT940 csv format for bank account export")
     print()
 

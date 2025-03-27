@@ -50,11 +50,14 @@ nano config.yml
 
 ## Setup (Windows)
 
-Install Python and Git (You may use [WinGetUI](https://github.com/marticliment/UniGetUI))
+##### Install dependencies
+(You may use [UniGetUI](https://github.com/marticliment/UniGetUI))
 
+- [GIT](https://marticliment.com/unigetui/share?name=Git&id=Microsoft.Git&sourceName=winget&managerName=WinGet)
+- [Python 3](https://marticliment.com/unigetui/share?name=Python&id=python&sourceName=community&managerName=Chocolatey)
 
-Create virtual python environment
-Open PowersShell in accounting-tool folder (right click in explorer window)
+##### Create virtual python environment
+Open PowersShell in accounting-tool folder (shift + right click in explorer window)
 
 ```
 python -m venv $ENV:TEMP\jw_accounting_autofill_venv
@@ -62,7 +65,7 @@ python -m venv $ENV:TEMP\jw_accounting_autofill_venv
 # confirm script warning with 'm' if needed
 ```
 
-Install dependencies
+##### Install python dependencies
 
 ```
 python -m pip install .
@@ -72,6 +75,7 @@ python -m pip install .
 ## Usage (Linux)
 
 Activate virtual python environment and start tool
+
 ```
 source ~/jw_autofill_venv/bin/activate
 ./run.sh --month=2023-06 --source=mt940.csv --account="Accounting sub-account name on jw org" --project="jw org project label"
@@ -83,6 +87,7 @@ You may login manually, the tool will wait at this step.
 
 
 ## Usage (Windows)
+
 ```
 & "$ENV:TEMP\jw_accounting_autofill_venv\Scripts\Activate.ps1"
 .\run.bat --month=2023-06 --source=mt940.csv --account="Accounting sub-account name on jw org" --project="jw org project label"
@@ -92,6 +97,7 @@ You may login manually, the tool will wait at this step.
 ##### Note
 
 If you experience failures in script, try again. It may have been a timeout issue.
+Also make sure you closed all browser windows that were opened previously by this tool.
 
 To remove all temporary data / Cookies / ..., use tools "Clear cache..." option or delete folder `tmp`.
 (This will require you to relogin on next run!)

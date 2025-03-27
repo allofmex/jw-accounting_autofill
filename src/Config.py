@@ -56,7 +56,9 @@ class Config:
             else:
                 basePath = self.basePath+ '/'
             data = basePath +data
+            data = data.replace("%%", "==") # workarround for windows, to avoid %%anchor%% becomming %anchor%
             data = os.path.expandvars(data)
+            data = data.replace("==", "%%")
         return data
 
     def getSubstitude(self, baseKey: str, needle: str):

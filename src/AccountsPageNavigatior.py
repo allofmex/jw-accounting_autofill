@@ -6,6 +6,7 @@ from selenium.webdriver.support.select import Select
 import locale
 from _datetime import date
 import re
+from os import name as os_name
 
 from jw_page_navigation.PageNavigator import PageNavigator
 
@@ -38,7 +39,11 @@ class AccountsPageNavigatior(PageNavigator):
         # self.navWait.until(ExpCond.presence_of_element_located((By.XPATH, '//a[contains(@href, "/sheets") and contains(@class, "side-nav__link")]'))).click()
         self.navWait.until(ExpCond.presence_of_element_located((By.TAG_NAME, 'app-period-list')))
         container = self.driver.find_element(By.TAG_NAME, 'app-sheets-by-year')
-        locale.setlocale(locale.LC_TIME,'de_DE.UTF-8')
+        if os_name == "nt":
+            # problems with umlaut (MÃ¤rz) if de_DE.UTF-8 on windows
+            locale.setlocale(locale.LC_TIME,'de_DE')
+        else:
+            locale.setlocale(locale.LC_TIME,'de_DE.UTF-8')
         searchedYearStr = month.strftime("%Y") # like "2023"
         print(f'Searching for {searchedYearStr}')
         # Year list seems to load asyncron!
@@ -227,7 +232,7 @@ class AccountsPageNavigatior(PageNavigator):
         self.navWait.until(ExpCond.presence_of_element_located((By.XPATH, '//section[contains(@class,"page--print-layout")]')))
 
     def _parseAmount(self, valueWithCurrency: str) -> float:
-        match = re.search("^([\d,.]+)[,.](\d{2})\s.*$", valueWithCurrency)
+        match = re.search(r"^([\d,.]+)[,.](\d{2})\s.*$", valueWithCurrency)
         if (match is None):
             raise Exception(f'Amount could not be parsed from {valueWithCurrency}')
         return float(f'{match.group(1)}.{match.group(2).replace(",","").replace(".","")}')

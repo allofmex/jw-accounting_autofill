@@ -79,9 +79,7 @@ class MonthCloser:
         targetFilePath = f'{targetDir}/{fileName}'
         targetFilePath = self._prepareFilename(targetFilePath)
 
-        shutil.move(printedFile, targetFilePath)
-        if os.path.isfile(printedFile):
-            raise Exception("File rename did not worked out "+printedFile)
+        await self._moveFile(printedFile, targetFilePath)
         return targetFilePath
 
     def _prepareFilename(self, targetFilePath: str) -> str:
@@ -94,3 +92,17 @@ class MonthCloser:
         while os.path.exists(targetPattern % i):
             i += 1
         return targetPattern % i
+
+    async def _moveFile(self, srcFileName, targetFilePath) -> None:
+        ttl = 10
+        while ttl > 0:
+            ttl -= 1
+            try:
+                shutil.move(srcFileName, targetFilePath)
+                break
+            except PermissionError:
+                # Windows sometimes failes with "WinError 32, file in use", we just try again a little later
+                print(f"Waiting for {srcFileName} to become ready")
+                await asyncio.sleep(1)
+        if os.path.isfile(srcFileName):
+            raise Exception("File rename did not worked out "+srcFileName)
